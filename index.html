@@ -82,7 +82,7 @@
         /* ================= JOGO 2: MATH DROP ================= */
         .g2-header-bar { display: flex; justify-content: space-between; padding: 15px 20px; font-size: 14px; color: #d2a8ff; z-index: 10; }
         #g2-play-area { flex-grow: 1; position: relative; width: 100%; }
-        .g2-block { position: absolute; width: 80px; height: 50px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.5); border-top: 5px solid #e3b341; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; }
+        .g2-block { position: absolute; width: 80px; height: 50px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.5); border-top: 5px solid #e3b341; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; transition: opacity 0.1s; }
         #g2-bottom-section { height: 100px; width: 100%; background: #0d1117; z-index: 10; }
         #g2-danger-line { width: 100%; height: 8px; background: linear-gradient(90deg, #e3b341 0%, #fff 50%, #e3b341 100%); box-shadow: 0 0 10px #e3b341; }
         .g2-controls-area { display: flex; align-items: center; justify-content: center; gap: 15px; height: calc(100% - 8px); }
@@ -208,11 +208,9 @@
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
         document.getElementById(`g${gameId}-screen`).classList.add('active-screen');
         
-        // Reseta as overlays
         document.getElementById(`g${gameId}-overlay`).style.display = 'flex';
         document.getElementById(`g${gameId}-overlay-msg`).style.color = '#e3b341';
         
-        // Esconde os botões de "PRÓXIMO" e reseta texto do botão principal
         document.getElementById(`g${gameId}-btn-main`).innerText = "INICIAR HACK";
         document.getElementById(`g${gameId}-btn-next`).style.display = "none";
         
@@ -224,7 +222,6 @@
     }
 
     function returnToHub() {
-        // Para qualquer jogo que esteja rodando
         g1_isPlaying = false; clearTimeout(g1_timer);
         g2_isPlaying = false; cancelAnimationFrame(g2_gameLoop); clearInterval(g2_spawnTimer); clearInterval(g2_countdown);
         g3_isPlaying = false; cancelAnimationFrame(g3_timerLoop);
@@ -357,7 +354,11 @@
         document.getElementById('g2-overlay').style.display = 'none';
         g2_lives = 3; g2_timeLeft = 20; g2_fallSpeed = 1.3;
         document.getElementById('g2-lives').innerText = '♥♥♥';
-        g2_blocks.forEach(b => b.el.remove()); g2_blocks = [];
+        
+        // Garante que não haja resíduos de blocos
+        g2_blocks.forEach(b => b.el.remove()); 
+        g2_blocks = [];
+        
         g2_btns.forEach(btn => { btn.innerText = "-"; btn.disabled = false; });
         g2_isPlaying = true;
         
@@ -396,16 +397,24 @@
     function g2_update() {
         if (!g2_isPlaying) return;
         let dangerY = g2_playArea.clientHeight - 10;
+        
         for (let i = 0; i < g2_blocks.length; i++) {
             let b = g2_blocks[i];
-            b.y += g2_fallSpeed; b.el.style.top = b.y + 'px';
+            b.y += g2_fallSpeed; 
+            b.el.style.top = b.y + 'px';
+            
             if (b.y + 50 >= dangerY) {
-                b.el.remove(); g2_blocks.splice(i, 1); i--;
-                g2_loseLife(); g2_updateBtns();
+                // Toca na linha: destrói e perde vida
+                let removedBlock = g2_blocks.splice(i, 1)[0];
+                removedBlock.el.remove(); 
+                i--;
+                
+                g2_loseLife(); 
+                if (g2_isPlaying) g2_updateBtns();
             }
         }
         g2_fallSpeed += g2_speedMult;
-        g2_gameLoop = requestAnimationFrame(g2_update);
+        if (g2_isPlaying) g2_gameLoop = requestAnimationFrame(g2_update);
     }
 
     function g2_updateBtns() {
@@ -422,17 +431,23 @@
     function g2_checkAnswer(val) {
         if (!g2_isPlaying || g2_blocks.length === 0) return;
         
-        if (val === g2_blocks[0].answer) {
-            // Acertou
-            g2_blocks[0].el.remove(); 
+        let target = g2_blocks[0];
+
+        if (val === target.answer) {
+            // Acertou: Remove bloco atual do DOM e da fila
+            target.el.remove(); 
             g2_blocks.shift(); 
             g2_updateBtns();
         } else { 
-            // Errou: Remove a conta atual, perde vida e passa para a próxima
-            g2_blocks[0].el.remove(); 
+            // Errou: Remove o bloco imediatamente e corta vida
+            target.el.remove(); 
             g2_blocks.shift(); 
             g2_loseLife();
-            g2_updateBtns();
+            
+            // Só atualiza botão se o jogo não tiver dado Game Over no g2_loseLife
+            if (g2_isPlaying) {
+                g2_updateBtns();
+            }
         }
     }
 
@@ -441,14 +456,23 @@
         document.getElementById('g2-lives').innerText = '♥'.repeat(Math.max(0, g2_lives)) + '♡'.repeat(3 - Math.max(0, g2_lives));
         g2_playArea.style.background = 'rgba(255, 0, 0, 0.2)';
         setTimeout(() => g2_playArea.style.background = 'transparent', 100);
-        if (g2_lives <= 0) g2_endGame("SYSTEM FAILURE", false);
+        
+        if (g2_lives <= 0) {
+            g2_endGame("SYSTEM FAILURE", false);
+        }
     }
 
     function g2_endGame(msg, success) {
         g2_isPlaying = false;
-        cancelAnimationFrame(g2_gameLoop); clearInterval(g2_spawnTimer); clearInterval(g2_countdown);
+        cancelAnimationFrame(g2_gameLoop); 
+        clearInterval(g2_spawnTimer); 
+        clearInterval(g2_countdown);
+        
         g2_btns.forEach(btn => { btn.disabled = true; });
-        if(success) g2_blocks.forEach(b => b.el.remove());
+        
+        // CORREÇÃO: Limpa TODOS os blocos da tela incondicionalmente no final do jogo
+        g2_blocks.forEach(b => b.el.remove());
+        g2_blocks = [];
         
         let overlay = document.getElementById('g2-overlay');
         let overlayMsg = document.getElementById('g2-overlay-msg');
