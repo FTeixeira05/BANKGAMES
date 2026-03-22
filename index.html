@@ -340,7 +340,7 @@
         
         if (success) {
             btnMain.innerText = "REINICIAR";
-            btnNext.style.display = "block"; // Mostra o botão "Próximo"
+            btnNext.style.display = "block"; 
         } else {
             btnMain.innerText = "TENTAR NOVAMENTE";
             btnNext.style.display = "none";
@@ -348,14 +348,14 @@
     }
 
     // ================= JOGO 2: MATH DROP =================
-    let g2_lives = 3, g2_isPlaying = false, g2_blocks = [], g2_gameLoop, g2_spawnTimer, g2_countdown, g2_timeLeft = 25;
+    let g2_lives = 3, g2_isPlaying = false, g2_blocks = [], g2_gameLoop, g2_spawnTimer, g2_countdown, g2_timeLeft = 20;
     let g2_fallSpeed = 1.3, g2_speedMult = 0.001;
     const g2_playArea = document.getElementById('g2-play-area');
     const g2_btns = [document.getElementById('g2-btn0'), document.getElementById('g2-btn1'), document.getElementById('g2-btn2')];
 
     function g2_init() {
         document.getElementById('g2-overlay').style.display = 'none';
-        g2_lives = 3; g2_timeLeft = 25; g2_fallSpeed = 1.3;
+        g2_lives = 3; g2_timeLeft = 20; g2_fallSpeed = 1.3;
         document.getElementById('g2-lives').innerText = '♥♥♥';
         g2_blocks.forEach(b => b.el.remove()); g2_blocks = [];
         g2_btns.forEach(btn => { btn.innerText = "-"; btn.disabled = false; });
@@ -421,9 +421,19 @@
 
     function g2_checkAnswer(val) {
         if (!g2_isPlaying || g2_blocks.length === 0) return;
+        
         if (val === g2_blocks[0].answer) {
-            g2_blocks[0].el.remove(); g2_blocks.shift(); g2_updateBtns();
-        } else { g2_loseLife(); }
+            // Acertou
+            g2_blocks[0].el.remove(); 
+            g2_blocks.shift(); 
+            g2_updateBtns();
+        } else { 
+            // Errou: Remove a conta atual, perde vida e passa para a próxima
+            g2_blocks[0].el.remove(); 
+            g2_blocks.shift(); 
+            g2_loseLife();
+            g2_updateBtns();
+        }
     }
 
     function g2_loseLife() {
