@@ -256,7 +256,23 @@
 
     function g1_init() {
         document.getElementById('g1-overlay').style.display = 'none';
-        g1_sequence = Array.from({length: g1_totalSteps + 3}, () => ['X', 'Y', 'Z'][Math.floor(Math.random() * 3)]);
+        
+        // Geração 50/50 Inteligente (Deixa imprevisível e balanceado)
+        g1_sequence = [];
+        let pool = ['X', 'Y', 'Z'];
+        for(let i=0; i < g1_totalSteps + 3; i++) {
+            if (i >= 2) {
+                if (Math.random() < 0.5) {
+                    g1_sequence.push(g1_sequence[i-2]); // Força 50% de chance de ser SIM
+                } else {
+                    let errPool = pool.filter(x => x !== g1_sequence[i-2]);
+                    g1_sequence.push(errPool[Math.floor(Math.random() * errPool.length)]); // Força NÃO
+                }
+            } else {
+                g1_sequence.push(pool[Math.floor(Math.random() * 3)]);
+            }
+        }
+
         g1_currentIndex = 0;
         g1_isPlaying = true;
         g1_waitingAnswer = false;
@@ -269,7 +285,7 @@
         document.getElementById('g1-hint').innerText = "PREPARE-SE";
         
         g1_updateCells(0);
-        g1_startTimer(5000, g1_startQuestion);
+        g1_startTimer(3500, g1_startQuestion); // Reduzido de 5s para 3.5s
     }
 
     function g1_startQuestion() {
@@ -288,7 +304,7 @@
         g1_cells[1].classList.add('g1-hidden');
         g1_updateCells(g1_currentIndex);
 
-        g1_startTimer(5000, () => g1_endGame("TEMPO ESGOTADO", false));
+        g1_startTimer(3500, () => g1_endGame("TEMPO ESGOTADO", false)); // Reduzido para 3.5s
     }
 
     function g1_checkAnswer(answer) {
@@ -345,17 +361,20 @@
     }
 
     // ================= JOGO 2: MATH DROP =================
-    let g2_lives = 3, g2_isPlaying = false, g2_blocks = [], g2_gameLoop, g2_spawnTimer, g2_countdown, g2_timeLeft = 20;
+    let g2_lives = 3, g2_isPlaying = false, g2_blocks = [], g2_gameLoop, g2_spawnTimer, g2_countdown, g2_timeLeft = 15;
     
-    let g2_fallSpeed = 1.2; 
+    // FallSpeed 1.4 convertido para Delta Time = ~85 pixels/s
+    let g2_fallSpeed = 85; 
+    let g2_lastTime = 0;
     
     const g2_playArea = document.getElementById('g2-play-area');
     const g2_btns = [document.getElementById('g2-btn0'), document.getElementById('g2-btn1'), document.getElementById('g2-btn2')];
 
     function g2_init() {
         document.getElementById('g2-overlay').style.display = 'none';
-        g2_lives = 3; g2_timeLeft = 20; 
-        g2_fallSpeed = 1.2; 
+        g2_lives = 3; 
+        g2_timeLeft = 15; // Reduzido para 15 segundos
+        g2_fallSpeed = 85; 
         
         document.getElementById('g2-lives').innerText = '♥♥♥';
         
@@ -365,6 +384,7 @@
         g2_btns.forEach(btn => { btn.innerText = "-"; btn.disabled = false; });
         g2_isPlaying = true;
         
+        g2_lastTime = performance.now();
         g2_gameLoop = requestAnimationFrame(g2_update);
         g2_spawnTimer = setInterval(g2_spawnBlock, 1200);
         g2_spawnBlock();
@@ -397,13 +417,19 @@
         return { text: `${a}${type}${b}`, ans: ans };
     }
 
-    function g2_update() {
+    function g2_update(currentTime) {
         if (!g2_isPlaying) return;
+        
+        let dt = (currentTime - g2_lastTime) / 1000;
+        g2_lastTime = currentTime;
+        if (dt > 0.1) dt = 0.1;
+
         let dangerY = g2_playArea.clientHeight - 10;
         
         for (let i = 0; i < g2_blocks.length; i++) {
             let b = g2_blocks[i];
-            b.y += g2_fallSpeed; 
+            
+            b.y += g2_fallSpeed * dt; 
             b.el.style.top = b.y + 'px';
             
             if (b.y + 50 >= dangerY) {
@@ -492,7 +518,7 @@
 
     // ================= JOGO 3: EQUATION COMPARE =================
     let g3_currentRound = 1, g3_isPlaying = false, g3_startTime, g3_timerLoop, g3_valTop, g3_valBottom;
-    const g3_totalTime = 25000; // <-- AQUI: Tempo reduzido para 25 segundos
+    const g3_totalTime = 25000; 
 
     function g3_init() {
         document.getElementById('g3-overlay').style.display = 'none';
