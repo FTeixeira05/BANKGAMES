@@ -346,13 +346,18 @@
 
     // ================= JOGO 2: MATH DROP =================
     let g2_lives = 3, g2_isPlaying = false, g2_blocks = [], g2_gameLoop, g2_spawnTimer, g2_countdown, g2_timeLeft = 20;
-    let g2_fallSpeed = 1.3, g2_speedMult = 0.001;
+    
+    // Configuração alterada conforme solicitado: Velocidade estática cravada em 1.2
+    let g2_fallSpeed = 1.2; 
+    
     const g2_playArea = document.getElementById('g2-play-area');
     const g2_btns = [document.getElementById('g2-btn0'), document.getElementById('g2-btn1'), document.getElementById('g2-btn2')];
 
     function g2_init() {
         document.getElementById('g2-overlay').style.display = 'none';
-        g2_lives = 3; g2_timeLeft = 20; g2_fallSpeed = 1.3;
+        g2_lives = 3; g2_timeLeft = 20; 
+        g2_fallSpeed = 1.2; // Reseta sempre para 1.2 ao reiniciar
+        
         document.getElementById('g2-lives').innerText = '♥♥♥';
         
         // Garante que não haja resíduos de blocos
@@ -413,7 +418,9 @@
                 if (g2_isPlaying) g2_updateBtns();
             }
         }
-        g2_fallSpeed += g2_speedMult;
+        
+        // O multiplicador (g2_speedMult) foi removido aqui para manter a velocidade constante.
+        
         if (g2_isPlaying) g2_gameLoop = requestAnimationFrame(g2_update);
     }
 
@@ -434,17 +441,14 @@
         let target = g2_blocks[0];
 
         if (val === target.answer) {
-            // Acertou: Remove bloco atual do DOM e da fila
             target.el.remove(); 
             g2_blocks.shift(); 
             g2_updateBtns();
         } else { 
-            // Errou: Remove o bloco imediatamente e corta vida
             target.el.remove(); 
             g2_blocks.shift(); 
             g2_loseLife();
             
-            // Só atualiza botão se o jogo não tiver dado Game Over no g2_loseLife
             if (g2_isPlaying) {
                 g2_updateBtns();
             }
@@ -470,7 +474,6 @@
         
         g2_btns.forEach(btn => { btn.disabled = true; });
         
-        // CORREÇÃO: Limpa TODOS os blocos da tela incondicionalmente no final do jogo
         g2_blocks.forEach(b => b.el.remove());
         g2_blocks = [];
         
