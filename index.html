@@ -347,7 +347,6 @@
     // ================= JOGO 2: MATH DROP =================
     let g2_lives = 3, g2_isPlaying = false, g2_blocks = [], g2_gameLoop, g2_spawnTimer, g2_countdown, g2_timeLeft = 20;
     
-    // Configuração alterada conforme solicitado: Velocidade estática cravada em 1.2
     let g2_fallSpeed = 1.2; 
     
     const g2_playArea = document.getElementById('g2-play-area');
@@ -356,11 +355,10 @@
     function g2_init() {
         document.getElementById('g2-overlay').style.display = 'none';
         g2_lives = 3; g2_timeLeft = 20; 
-        g2_fallSpeed = 1.2; // Reseta sempre para 1.2 ao reiniciar
+        g2_fallSpeed = 1.2; 
         
         document.getElementById('g2-lives').innerText = '♥♥♥';
         
-        // Garante que não haja resíduos de blocos
         g2_blocks.forEach(b => b.el.remove()); 
         g2_blocks = [];
         
@@ -409,7 +407,6 @@
             b.el.style.top = b.y + 'px';
             
             if (b.y + 50 >= dangerY) {
-                // Toca na linha: destrói e perde vida
                 let removedBlock = g2_blocks.splice(i, 1)[0];
                 removedBlock.el.remove(); 
                 i--;
@@ -418,8 +415,6 @@
                 if (g2_isPlaying) g2_updateBtns();
             }
         }
-        
-        // O multiplicador (g2_speedMult) foi removido aqui para manter a velocidade constante.
         
         if (g2_isPlaying) g2_gameLoop = requestAnimationFrame(g2_update);
     }
@@ -497,7 +492,7 @@
 
     // ================= JOGO 3: EQUATION COMPARE =================
     let g3_currentRound = 1, g3_isPlaying = false, g3_startTime, g3_timerLoop, g3_valTop, g3_valBottom;
-    const g3_totalTime = 40000;
+    const g3_totalTime = 25000; // <-- AQUI: Tempo reduzido para 25 segundos
 
     function g3_init() {
         document.getElementById('g3-overlay').style.display = 'none';
